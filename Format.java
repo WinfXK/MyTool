@@ -1,58 +1,61 @@
+package cn.epicfx.winfxk.money.sn.tool;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class Format {
+@SuppressWarnings("unchecked")
+public class Format<K, T> {
 	private int MaxLength, Value;
 	public static final int DefaultLength = 0x14, DefaultValue = 0x4;
-	private Map<String, String> string;
-	private static MyData myData;
+	private Map<Object, Object> string;
+	private static MyData<Object, Object> myData;
 	private String Padding, Vertical, Across;
 	private static final String DefaultPadding = " ", DefaultVertical = "|", DefaultAcross = "-";
 
 	/**
-	 * ÎÄ±¾¸ñÊ½»¯
+	 * æ–‡æœ¬æ ¼å¼åŒ–
 	 * 
-	 * @param string Òª¸ñÊ½»¯µÄÎÄ±¾Map¶ÔÏó
+	 * @param string è¦æ ¼å¼åŒ–çš„æ–‡æœ¬Mapå¯¹è±¡
 	 */
-	public Format(Map<String, String> string) {
+	public Format(Map<K, T> string) {
 		this(string, DefaultLength, DefaultValue);
 	}
 
 	/**
-	 * ÎÄ±¾¸ñÊ½»¯
+	 * æ–‡æœ¬æ ¼å¼åŒ–
 	 * 
-	 * @param string    Òª¸ñÊ½»¯µÄÎÄ±¾Map¶ÔÏó
-	 * @param MaxLength ÎÄ±¾µÄÒâÏò³¤¶È
-	 *                  (<b>×¢£º</b>Õâ²¢²»Ò»¶¨ÊÇÎÄ±¾µÄÕæÊµ³¤¶È£¡ÕæÊµ³¤¶È»á¸ù¾İÎÄ±¾µÄÊµ¼Ê³¤¶È¸Ä±ä£¬µ«ÈôÊÇÎÄ±¾³¤¶ÈĞ¡ÓÚ¸ÃÖµÔò»á×Ô¶¯Ìî³ä³¤¶ÈÖÁ¸ÃÖµ)
+	 * @param string    è¦æ ¼å¼åŒ–çš„æ–‡æœ¬Mapå¯¹è±¡
+	 * @param MaxLength æ–‡æœ¬çš„æ„å‘é•¿åº¦
+	 *                  (<b>æ³¨ï¼š</b>è¿™å¹¶ä¸ä¸€å®šæ˜¯æ–‡æœ¬çš„çœŸå®é•¿åº¦ï¼çœŸå®é•¿åº¦ä¼šæ ¹æ®æ–‡æœ¬çš„å®é™…é•¿åº¦æ”¹å˜ï¼Œä½†è‹¥æ˜¯æ–‡æœ¬é•¿åº¦å°äºè¯¥å€¼åˆ™ä¼šè‡ªåŠ¨å¡«å……é•¿åº¦è‡³è¯¥å€¼)
 	 */
-	public Format(Map<String, String> string, int MaxLength) {
+	public Format(Map<K, T> string, int MaxLength) {
 		this(string, MaxLength, DefaultValue);
 	}
 
 	/**
-	 * ÎÄ±¾¸ñÊ½»¯
+	 * æ–‡æœ¬æ ¼å¼åŒ–
 	 * 
-	 * @param string    Òª¸ñÊ½»¯µÄÎÄ±¾Map¶ÔÏó
-	 * @param MaxLength ÎÄ±¾µÄÒâÏò³¤¶È
-	 *                  (<b>×¢£º</b>Õâ²¢²»Ò»¶¨ÊÇÎÄ±¾µÄÕæÊµ³¤¶È£¡ÕæÊµ³¤¶È»á¸ù¾İÎÄ±¾µÄÊµ¼Ê³¤¶È¸Ä±ä£¬µ«ÈôÊÇÎÄ±¾³¤¶ÈĞ¡ÓÚ¸ÃÖµÔò»á×Ô¶¯Ìî³ä³¤¶ÈÖÁ¸ÃÖµ)
-	 * @param Value     Ç°ºóÎÄ±¾¼äÏ¶×îĞ¡Öµ
+	 * @param string    è¦æ ¼å¼åŒ–çš„æ–‡æœ¬Mapå¯¹è±¡
+	 * @param MaxLength æ–‡æœ¬çš„æ„å‘é•¿åº¦
+	 *                  (<b>æ³¨ï¼š</b>è¿™å¹¶ä¸ä¸€å®šæ˜¯æ–‡æœ¬çš„çœŸå®é•¿åº¦ï¼çœŸå®é•¿åº¦ä¼šæ ¹æ®æ–‡æœ¬çš„å®é™…é•¿åº¦æ”¹å˜ï¼Œä½†è‹¥æ˜¯æ–‡æœ¬é•¿åº¦å°äºè¯¥å€¼åˆ™ä¼šè‡ªåŠ¨å¡«å……é•¿åº¦è‡³è¯¥å€¼)
+	 * @param Value     å‰åæ–‡æœ¬é—´éš™æœ€å°å€¼
 	 */
-	public Format(Map<String, String> string, int MaxLength, int Value) {
+	public Format(Map<K, T> string, int MaxLength, int Value) {
 		this(string, MaxLength, Value, DefaultPadding);
 	}
 
 	/**
-	 * ÎÄ±¾¸ñÊ½»¯
+	 * æ–‡æœ¬æ ¼å¼åŒ–
 	 * 
-	 * @param string    Òª¸ñÊ½»¯µÄÎÄ±¾Map¶ÔÏó
-	 * @param MaxLength ÎÄ±¾µÄÒâÏò³¤¶È
-	 *                  (<b>×¢£º</b>Õâ²¢²»Ò»¶¨ÊÇÎÄ±¾µÄÕæÊµ³¤¶È£¡ÕæÊµ³¤¶È»á¸ù¾İÎÄ±¾µÄÊµ¼Ê³¤¶È¸Ä±ä£¬µ«ÈôÊÇÎÄ±¾³¤¶ÈĞ¡ÓÚ¸ÃÖµÔò»á×Ô¶¯Ìî³ä³¤¶ÈÖÁ¸ÃÖµ)
-	 * @param Value     Ç°ºóÎÄ±¾¼äÏ¶×îĞ¡Öµ
-	 * @param Padding   ÎÄ±¾¸ñÊ½»¯µÄÌî³ä×Ö·û
+	 * @param string    è¦æ ¼å¼åŒ–çš„æ–‡æœ¬Mapå¯¹è±¡
+	 * @param MaxLength æ–‡æœ¬çš„æ„å‘é•¿åº¦
+	 *                  (<b>æ³¨ï¼š</b>è¿™å¹¶ä¸ä¸€å®šæ˜¯æ–‡æœ¬çš„çœŸå®é•¿åº¦ï¼çœŸå®é•¿åº¦ä¼šæ ¹æ®æ–‡æœ¬çš„å®é™…é•¿åº¦æ”¹å˜ï¼Œä½†è‹¥æ˜¯æ–‡æœ¬é•¿åº¦å°äºè¯¥å€¼åˆ™ä¼šè‡ªåŠ¨å¡«å……é•¿åº¦è‡³è¯¥å€¼)
+	 * @param Value     å‰åæ–‡æœ¬é—´éš™æœ€å°å€¼
+	 * @param Padding   æ–‡æœ¬æ ¼å¼åŒ–çš„å¡«å……å­—ç¬¦
 	 */
-	public Format(Map<String, String> string, int MaxLength, int Value, String Padding) {
+	public Format(Map<K, T> string, int MaxLength, int Value, String Padding) {
 		this.MaxLength = MaxLength;
-		this.string = string;
+		this.string = (Map<Object, Object>) string;
 		this.Value = Value;
 		this.Padding = Padding;
 		this.Across = DefaultAcross;
@@ -60,57 +63,57 @@ public class Format {
 	}
 
 	/**
-	 * ÈôĞèÒª°üÎ§ÎÄ±¾×Ö·û´®£¬°üÎ§ÏÔÊ¾ºáÏòÎÄ±¾
+	 * è‹¥éœ€è¦åŒ…å›´æ–‡æœ¬å­—ç¬¦ä¸²ï¼ŒåŒ…å›´æ˜¾ç¤ºæ¨ªå‘æ–‡æœ¬
 	 * 
 	 * @param vertical
 	 */
-	public Format setAcross(String across) {
+	public Format<K, T> setAcross(String across) {
 		Across = across;
 		return this;
 	}
 
 	/**
-	 * ÉèÖÃ¸ñÊ½»¯Ìî³äµÄ×Ö·û´®
+	 * è®¾ç½®æ ¼å¼åŒ–å¡«å……çš„å­—ç¬¦ä¸²
 	 * 
 	 * @param padding
 	 */
-	public Format setPadding(String padding) {
+	public Format<K, T> setPadding(String padding) {
 		Padding = padding;
 		return this;
 	}
 
 	/**
-	 * ÈôĞèÒª°üÎ§ÎÄ±¾×Ö·û´®£¬°üÎ§ÏÔÊ¾µÄÊúÖ±ÎÄ±¾
+	 * è‹¥éœ€è¦åŒ…å›´æ–‡æœ¬å­—ç¬¦ä¸²ï¼ŒåŒ…å›´æ˜¾ç¤ºçš„ç«–ç›´æ–‡æœ¬
 	 * 
 	 * @param vertical
 	 */
-	public Format setVertical(String vertical) {
+	public Format<K, T> setVertical(String vertical) {
 		Vertical = vertical;
 		return this;
 	}
 
 	/**
-	 * ÉèÖÃĞèÒª¸ñÊ½»¯µÄÎÄ±¾Mydata¶ÔÏó
+	 * è®¾ç½®éœ€è¦æ ¼å¼åŒ–çš„æ–‡æœ¬Mydataå¯¹è±¡
 	 * 
 	 * @param string
 	 */
-	public Format setString(MyData string) {
-		this.string = string.getMap();
+	public Format<K, T> setString(MyData<K, T> string) {
+		this.string = (Map<Object, Object>) string.getMap();
 		return this;
 	}
 
 	/**
-	 * ÉèÖÃĞèÒª¸ñÊ½»¯µÄÎÄ±¾Map¶ÔÏó
+	 * è®¾ç½®éœ€è¦æ ¼å¼åŒ–çš„æ–‡æœ¬Mapå¯¹è±¡
 	 * 
 	 * @param string
 	 */
-	public Format setString(Map<String, String> string) {
-		this.string = string;
+	public Format<K, T> setString(Map<K, T> string) {
+		this.string = (Map<Object, Object>) string;
 		return this;
 	}
 
 	/**
-	 * »ñÈ¡¸ñÊ½»¯ÇÒ±»°üÎ§µÄÎÄ±¾
+	 * è·å–æ ¼å¼åŒ–ä¸”è¢«åŒ…å›´çš„æ–‡æœ¬
 	 * 
 	 * @return
 	 */
@@ -127,21 +130,23 @@ public class Format {
 	}
 
 	/**
-	 * »ñÈ¡¸ñÊ½»¯ºóµÄÎÄ±¾
+	 * è·å–æ ¼å¼åŒ–åçš„æ–‡æœ¬
 	 * 
 	 * @return
 	 */
 	public String getString() {
-		String s = "", s3, s4;
+		String s = "", s3, s4, s2;
 		int spacing, JJLength;
-		for (String s2 : string.keySet()) {
-			JJLength = getLength(s2) + Value + getLength(string.get(s2));
+		for (Object Obj : string.keySet()) {
+			s2 = String.valueOf(Obj);
+			JJLength = getLength(s2) + Value + getLength(String.valueOf(string.get(s2)));
 			if (JJLength > MaxLength)
 				setMaxLength(JJLength);
 		}
-		for (String s2 : string.keySet()) {
+		for (Object Obj : string.keySet()) {
+			s2 = String.valueOf(Obj);
 			s4 = "";
-			s3 = string.get(s2);
+			s3 = String.valueOf(string.get(s2));
 			spacing = MaxLength - (getLength(s2) + getLength(s3));
 			spacing = (spacing < Value ? Value : spacing);
 			double s5 = spacing % getLength(Padding);
@@ -154,7 +159,7 @@ public class Format {
 	}
 
 	/**
-	 * »ñÈ¡ÎÄ±¾ÒâÏò³¤¶È
+	 * è·å–æ–‡æœ¬æ„å‘é•¿åº¦
 	 * 
 	 * @return
 	 */
@@ -163,23 +168,23 @@ public class Format {
 	}
 
 	/**
-	 * ÉèÖÃÎÄ±¾ÒâÏò³¤¶È
+	 * è®¾ç½®æ–‡æœ¬æ„å‘é•¿åº¦
 	 * 
 	 * @param maxLength
 	 * @return
 	 */
-	public Format setMaxLength(int maxLength) {
+	public Format<K, T> setMaxLength(int maxLength) {
 		MaxLength = maxLength;
 		return this;
 	}
 
 	/**
-	 * ÉèÖÃ×îĞ¡Ç°ºóÎÄ±¾¼äÏ¶³¤¶È
+	 * è®¾ç½®æœ€å°å‰åæ–‡æœ¬é—´éš™é•¿åº¦
 	 * 
 	 * @param value
 	 * @return
 	 */
-	public Format setValue(int value) {
+	public Format<K, T> setValue(int value) {
 		Value = value;
 		return this;
 	}
@@ -198,57 +203,67 @@ public class Format {
 	}
 
 	/**
-	 * Ìí¼ÓÏëÒª¸ñÊ½»¯µÄÎÄ±¾
+	 * æ·»åŠ æƒ³è¦æ ¼å¼åŒ–çš„æ–‡æœ¬
 	 * 
-	 * @param Str Ç°°ë¶ÎÎÄ±¾
-	 * @param End ºó°ë¶ÎÎÄ±¾
+	 * @param Str å‰åŠæ®µæ–‡æœ¬
+	 * @param End ååŠæ®µæ–‡æœ¬
 	 * @return
 	 */
-	public static MyData put(String Str, String End) {
-		myData = myData == null ? new MyData() : myData;
-		return myData.put(Str, End);
+	public static <K, T extends Comparable<? super T>> MyData<K, T> put(K Str, T End) {
+		myData = myData == null ? new MyData<>() : myData;
+		return (MyData<K, T>) myData.put(Str, End);
 	}
 
-	public static class MyData {
-		private Map<String, String> map = new HashMap<>();
+	/**
+	 * ä¸€æ¬¡æ€§æ ¼å¼åŒ–æ‰€æœ‰çš„ä¸œè¥¿
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public static <K, T extends Comparable<? super T>> Format<K, T> putAll(Map<K, T> map) {
+		return new Format<>(map);
+	}
+
+	public static class MyData<K, T> {
+		private Map<K, T> map = new HashMap<>();
 
 		/**
-		 * »ñÈ¡ÎÄ±¾ĞòÁĞ»¯Map¶ÔÏó
+		 * è·å–æ–‡æœ¬åºåˆ—åŒ–Mapå¯¹è±¡
 		 * 
 		 * @return
 		 */
-		public Map<String, String> getMap() {
+		public Map<K, T> getMap() {
 			return map;
 		}
 
 		/**
-		 * Ìí¼ÓÏëÒª¸ñÊ½»¯µÄÎÄ±¾
+		 * æ·»åŠ æƒ³è¦æ ¼å¼åŒ–çš„æ–‡æœ¬
 		 * 
-		 * @param Str Ç°°ë¶ÎÎÄ±¾
-		 * @param End ºó°ë¶ÎÎÄ±¾
+		 * @param Str å‰åŠæ®µæ–‡æœ¬
+		 * @param End ååŠæ®µæ–‡æœ¬
 		 * @return
 		 */
-		public MyData put(String Str, String End) {
+		public MyData<K, T> put(K Str, T End) {
 			map.put(Str, End);
 			return this;
 		}
 
 		/**
-		 * »ñÈ¡¸ñÊ½»¯ºóµÄÎÄ±¾
+		 * è·å–æ ¼å¼åŒ–åçš„æ–‡æœ¬
 		 * 
 		 * @return
 		 */
 		public String getStrng() {
-			return new Format(map).getString();
+			return new Format<>(map).getString();
 		}
 
 		/**
-		 * »ñÈ¡¸ñÊ½»¯ÇÒ±»°üÎ§µÄÎÄ±¾
+		 * è·å–æ ¼å¼åŒ–ä¸”è¢«åŒ…å›´çš„æ–‡æœ¬
 		 * 
 		 * @return
 		 */
 		public String getStringparcel() {
-			return new Format(map).getStringparcel();
+			return new Format<>(map).getStringparcel();
 		}
 	}
 }
