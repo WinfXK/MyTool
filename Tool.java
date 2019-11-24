@@ -1,4 +1,4 @@
-package xiaokai.bemilk.tool;
+package cn.epicfx.winfxk.money.sn.tool;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -49,97 +49,7 @@ import cn.nukkit.item.Item;
 public class Tool implements X509TrustManager, HostnameVerifier {
 	private static String colorKeyString = "123456789abcdef";
 	private static String randString = "-+abcdefghijklmnopqrstuvwxyz_";
-/**
-	 * 
-	 * 通过拼接的方式构造请求内容，实现参数传输以及文件传输
-	 * 
-	 * @param actinUrl
-	 * @param params
-	 * @param files
-	 * @throws IOException
-	 * 
-	 */
-	public static void PostFile(String actionUrl, File file) throws IOException {
-		String BOUNDARY = java.util.UUID.randomUUID().toString();
-		String PREFIX = "--", LINEND = "\r\n";
-		String MULTIPART_FROM_DATA = "multipart/form-data";
-		String CHARSET = "UTF-8";
-		URL uri = new URL(actionUrl);
-		HttpURLConnection conn = (HttpURLConnection) uri.openConnection();
-		conn.setReadTimeout(5 * 1000); // 缓存的最长时间
-		conn.setDoInput(true);// 允许输入
-		conn.setDoOutput(true);// 允许输出
-		conn.setUseCaches(false); // 不允许使用缓存
-		conn.setRequestMethod("POST");
-		conn.setRequestProperty("connection", "keep-alive");
-		conn.setRequestProperty("Charsert", "UTF-8");
-		conn.setRequestProperty("Content-Type", MULTIPART_FROM_DATA + ";boundary=" + BOUNDARY);
-		StringBuilder sb = new StringBuilder();
-		DataOutputStream outStream = new DataOutputStream(conn.getOutputStream());
-		outStream.write(sb.toString().getBytes());
-		// 发送文件数据
-		StringBuilder sb1 = new StringBuilder();
-		sb1.append(PREFIX);
-		sb1.append(BOUNDARY);
-		sb1.append(LINEND);
-		sb1.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getName() + "\"" + LINEND);
-		sb1.append("Content-Type: application/octet-stream; charset=" + CHARSET + LINEND);
-		sb1.append(LINEND);
-		outStream.write(sb1.toString().getBytes());
-		InputStream is = new FileInputStream(file);
-		byte[] buffer = new byte[1024];
-		int len = 0;
-		while ((len = is.read(buffer)) != -1)
-			outStream.write(buffer, 0, len);
-		is.close();
-		outStream.write(LINEND.getBytes());
-		// 请求结束标志
-		byte[] end_data = (PREFIX + BOUNDARY + PREFIX + LINEND).getBytes();
-		outStream.write(end_data);
-		outStream.flush();
-		// 得到响应码
-		int res = conn.getResponseCode();
-		InputStream in = conn.getInputStream();
-		if (res == 200) {
-			int ch;
-			StringBuilder sb2 = new StringBuilder();
-			while ((ch = in.read()) != -1)
-				sb2.append((char) ch);
-		}
-		outStream.close();
-		conn.disconnect();
-	}
 
-	/**
-	 * 获取到截图
-	 * 
-	 * @return
-	 * @throws AWTException
-	 */
-	public static BufferedImage getScreen() throws AWTException {
-		Robot rb = null; // java.awt.image包中的类，可以用来抓取屏幕，即截屏。
-		rb = new Robot();
-		Toolkit tk = Toolkit.getDefaultToolkit(); // 获取缺省工具包
-		Dimension di = tk.getScreenSize(); // 屏幕尺寸规格
-		Rectangle rec = new Rectangle(0, 0, di.width, di.height);
-		BufferedImage bi = rb.createScreenCapture(rec);
-		return bi;
-	}
-
-	/**
-	 * 将图片保存到本地
-	 * 
-	 * @param img     要保存的图片
-	 * @param extent  要保存的图片的类型
-	 * @param newfile 要保存的图片的名称
-	 */
-	public static void img2file(BufferedImage img, String extent, File newfile) {
-		try {
-			ImageIO.write(img, extent, newfile);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 	/**
 	 * Object对象转换为String
 	 * 
@@ -405,27 +315,6 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 		for (int i = 1; i < hex.length; i++)
 			string.append((char) Integer.parseInt(hex[i], 16));
 		return string.toString();
-	}
-
-	/**
-	 * 将Map按数据升序排列
-	 * 
-	 * @param map
-	 * @return
-	 */
-	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValueDescending(Map<K, V> map) {
-		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
-		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
-			@Override
-			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
-				int compare = (o1.getValue()).compareTo(o2.getValue());
-				return -compare;
-			}
-		});
-		Map<K, V> result = new LinkedHashMap<>();
-		for (Map.Entry<K, V> entry : list)
-			result.put(entry.getKey(), entry.getValue());
-		return result;
 	}
 
 	/**
@@ -859,5 +748,84 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 			list.add(map);
 		}
 		return list;
+	}
+
+	/**
+	 * 将未知参数转换为小数
+	 * 
+	 * @param obj
+	 * @param double1
+	 * @return
+	 */
+	public static Double ObjectToDouble(Object obj) {
+		return ObjectToDouble(obj, 0d);
+	}
+
+	/**
+	 * 将未知参数转换为小数
+	 * 
+	 * @param obj
+	 * @param double1
+	 * @return
+	 */
+	public static Double ObjectToDouble(Object obj, Double double1) {
+		if (obj == null)
+			return double1;
+		double d;
+		try {
+			String S = String.valueOf(obj);
+			if (S == null || S.isEmpty())
+				return double1;
+			d = Double.valueOf(S);
+		} catch (Exception e) {
+			return double1;
+		}
+		return d;
+	}
+
+	/**
+	 * 将Map按数据升序排列
+	 * 
+	 * @param <K>
+	 * @param <V>
+	 * @param map
+	 * @return
+	 */
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValueAscending(Map<K, V> map) {
+		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
+		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
+			@Override
+			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
+				int compare = (o1.getValue()).compareTo(o2.getValue());
+				return compare;
+			}
+		});
+		Map<K, V> result = new LinkedHashMap<>();
+		for (Map.Entry<K, V> entry : list)
+			result.put(entry.getKey(), entry.getValue());
+		return result;
+	}
+
+	/**
+	 * 将Map降序排序
+	 * 
+	 * @param <K>
+	 * @param <V>
+	 * @param map
+	 * @return
+	 */
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValueDescending(Map<K, V> map) {
+		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
+		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
+			@Override
+			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
+				int compare = (o1.getValue()).compareTo(o2.getValue());
+				return -compare;
+			}
+		});
+		Map<K, V> result = new LinkedHashMap<>();
+		for (Map.Entry<K, V> entry : list)
+			result.put(entry.getKey(), entry.getValue());
+		return result;
 	}
 }
