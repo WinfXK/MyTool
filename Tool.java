@@ -49,7 +49,163 @@ import cn.nukkit.item.Item;
 public class Tool implements X509TrustManager, HostnameVerifier {
 	private static String colorKeyString = "123456789abcdef";
 	private static String randString = "-+abcdefghijklmnopqrstuvwxyz_";
+		/**
+	 * 从本地读取图片资源
+	 * 
+	 * @param url
+	 * @return
+	 */
+	public static Bitmap getLoacalBitmap(File url) {
+		try {
+			FileInputStream fis = new FileInputStream(url);
+			return BitmapFactory.decodeStream(fis);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
+	/**
+	 * 将一个不知道什么玩意转换为双精
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	public static float objToFloat(Object obj) {
+		return objToFloat(obj, 0f);
+	}
+
+	/**
+	 * 将一个不知道什么玩意转换为双精
+	 * 
+	 * @param obj
+	 * @param d
+	 * @return
+	 */
+	public static float objToFloat(Object obj, Float d) {
+		String string = String.valueOf(obj);
+		if (obj == null || string.isEmpty())
+			return d;
+		try {
+			return Float.valueOf(string);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return d;
+	}
+
+	/**
+	 * 将一个不知道什么玩意转换为双精
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	public static double objToDouble(Object obj) {
+		return objToDouble(obj, 0d);
+	}
+
+	/**
+	 * 将一个不知道什么玩意转换为双精
+	 * 
+	 * @param obj
+	 * @param d
+	 * @return
+	 */
+	public static double objToDouble(Object obj, Double d) {
+		String string = String.valueOf(obj);
+		if (obj == null || string.isEmpty())
+			return d;
+		try {
+			return Double.valueOf(string);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return d;
+	}
+
+	/**
+	 * 设置一个图片（将图片处理为合适大小，避免内存泄漏）
+	 * 
+	 * @param iv    图片视图对象
+	 * @param c
+	 * @param resId 资源ID
+	 */
+	public static void setImagee(ImageView iv, Activity c, int resId) {
+		BitmapFactory.Options factoryOptions = new BitmapFactory.Options();
+		factoryOptions.inJustDecodeBounds = true;
+		Bitmap bitmap = BitmapFactory.decodeResource(c.getResources(), resId);
+		int bitmapHeight = bitmap.getHeight();
+		int bitmapWidth = bitmap.getWidth();
+		Display defaultDisplay = c.getWindowManager().getDefaultDisplay();
+		Point point = new Point();
+		defaultDisplay.getSize(point);
+		float scaleWidth = ((float) bitmapWidth) / point.x;
+		float scaleHeight = ((float) bitmapHeight) / point.y;
+		Matrix matrix = new Matrix();
+		matrix.postScale(scaleWidth, scaleHeight);
+		bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmapWidth, bitmapHeight, matrix, true);
+		iv.setImageBitmap(bitmap);
+	}
+
+	/**
+	 * 判断文件是否是图片
+	 * 
+	 * @param filePath
+	 * @return
+	 */
+	public static boolean isImageFile(String filePath) {
+		Options options = new Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(filePath, options);
+		if (options.outWidth == -1)
+			return false;
+		return true;
+	}
+	/**
+	 * 求最大公约数
+	 * 
+	 * @param num1
+	 * @param num2
+	 * @return
+	 */
+	public static long getGys(long num1, long num2) {
+		num1 = Math.abs(num1);
+		num2 = Math.abs(num2);
+		while (num2 != 0) {
+			long remainder = num1 % num2;
+			num1 = num2;
+			num2 = remainder;
+		}
+		return num1;
+	}
+
+	/**
+	 * 小数转分数
+	 * 
+	 * @param f int[分子,分母]
+	 * @return
+	 */
+	public static long[] getGrade(float f) {
+		if (f == 0)
+			return new long[] { 0, 0 };
+		String string = String.valueOf(f);
+		if (string.indexOf(".") < 0)
+			return new long[] { (long) f, 1 };
+		String sint = string.substring(0, string.indexOf("."));
+		String sfloat = string.substring(string.indexOf(".") + 1);
+		int floatLength = sfloat.length();
+		long Fenmu = 1;
+		for (int k = 0; k < floatLength; k++)
+			Fenmu *= 10;
+		long Fenzi = Long.parseLong(sint + sfloat);
+		long lXs = (Fenzi < Fenmu) ? Fenzi : Fenmu, j = 1;
+		for (j = lXs; j > 1; j--)
+			if (Fenzi % j == 0 && Fenmu % j == 0)
+				break;
+		Fenzi = Fenzi / j;
+		Fenmu = Fenmu / j;
+		return new long[] { Fenzi, Fenmu };
+	}
 	/**
 	 * Object对象转换为String
 	 * 
