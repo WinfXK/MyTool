@@ -50,6 +50,142 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	private static String colorKeyString = "123456789abcdef";
 	private static String randString = "-+abcdefghijklmnopqrstuvwxyz_";
 		/**
+	 * 写入木牌内容
+	 * 
+	 * @param Level
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param list
+	 */
+	public static void setSign(String Level, double x, double y, double z, String... list) {
+		Level level = Server.getInstance().getLevelByName(Level);
+		if (level == null)
+			return;
+		setSign(new Location(x, y, z, level), list);
+	}
+
+	/**
+	 * 写入木牌内容
+	 * 
+	 * @param location
+	 * @param list
+	 */
+	public static void setSign(Location location, String... list) {
+		setSign(location.level.getBlock(location), list);
+	}
+
+	/**
+	 * 写入木牌内容
+	 * 
+	 * @param Level
+	 * @param vector3
+	 * @param list
+	 */
+	public static void setSign(String Level, Vector3 vector3, String... list) {
+		Level level = Server.getInstance().getLevelByName(Level);
+		if (level == null)
+			return;
+		setSign(new Location(vector3.x, vector3.y, vector3.z, level), list);
+	}
+
+	/**
+	 * 写入木牌内容
+	 * 
+	 * @param level
+	 * @param vector3
+	 * @param list
+	 */
+	public static void setSign(Level level, Vector3 vector3, String... list) {
+		setSign(new Location(vector3.x, vector3.y, vector3.z, level), list);
+	}
+
+	/**
+	 * 写入木牌内容
+	 * 
+	 * @param block
+	 * @param list
+	 */
+	public static void setSign(Block block, String... list) {
+		if (list == null || block == null)
+			return;
+		BlockEntity blockEntity = block.getLevel().getBlockEntity(block);
+		BlockEntitySign sign = (blockEntity instanceof BlockEntitySign) ? (BlockEntitySign) blockEntity
+				: new BlockEntitySign(block.getLevel().getChunk(block.getFloorX() >> 4, block.getFloorZ() >> 4),
+						BlockEntity.getDefaultCompound(block, BlockEntity.SIGN));
+		String[] Tile = { " ", " ", " ", " " };
+		for (int i = 0; i < list.length; i++) {
+			Tile[i] = list[i] == null ? "" : list[i];
+			if (i >= 3)
+				break;
+		}
+		sign.setText(Tile);
+	}
+		/**
+	 * 获取服务器当前的语言
+	 * 
+	 * @return
+	 */
+	public static String getLanguage() {
+		return getLanguages().get(Server.getInstance().getLanguage().getName());
+	}
+
+	/**
+	 * 返回对应语言的简写
+	 * 
+	 * @return
+	 */
+	public static Map<String, String> getLanguages() {
+		Map<String, String> Languages = new HashMap<>();
+		Languages.put("English", "eng");
+		Languages.put("中文(简体)", "chs");
+		Languages.put("中文(繁體)", "cht");
+		Languages.put("日本語", "jpn");
+		Languages.put("Pyccĸий", "rus");
+		Languages.put("Español", "spa");
+		Languages.put("Polish", "pol");
+		Languages.put("Português", "bra");
+		Languages.put("한국어", "kor");
+		Languages.put("Українська", "ukr");
+		Languages.put("Deutsch", "deu");
+		Languages.put("Lietuvių", "ltu");
+		Languages.put("Indonesian", "idn");
+		Languages.put("Czech", "cze");
+		Languages.put("Turkish", "tur");
+		Languages.put("Suomi", "fin");
+		return Languages;
+	}
+
+	/**
+	 * 将一个不知道什么玩意转换为Long
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	public static long objToLong(Object obj) {
+		return objToLong(obj, 0L);
+	}
+
+	/**
+	 * 将一个不知道什么玩意转换为Long
+	 * 
+	 * @param obj
+	 * @param d
+	 * @return
+	 */
+	public static long objToLong(Object obj, long d) {
+		String string = String.valueOf(obj);
+		if (obj == null || string.isEmpty())
+			return d;
+		try {
+			return Long.valueOf(string);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return d;
+	}
+
+		/**
 	 * 从本地读取图片资源
 	 * 
 	 * @param url
