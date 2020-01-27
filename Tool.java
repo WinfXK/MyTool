@@ -66,6 +66,35 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	}
 
 	/**
+	 * 自动生成一个Command对象的Help文本
+	 *
+	 * @param command
+	 * @return
+	 */
+	public static String getCommandHelp(Command command) {
+		String string = "";
+		for (CommandParameter[] cp : command.getCommandParameters().values())
+			string += getCommandHelp(command, cp) + "\n";
+		return string;
+	}
+
+	/**
+	 * 自动生成一个Command对象的Help文本
+	 *
+	 * @param command
+	 * @return
+	 */
+	public static String getCommandHelp(Command command, CommandParameter[] cp) {
+		String string = "";
+		if (cp.length > 0) {
+			string += "§f/" + command.getName() + " §b";
+			for (int i = 0; i < cp.length; i++)
+				string += (i == 0 ? cp[i].enumData.getValues().get(0) : "§6 " + cp[i].name);
+			string += "§f： §9" + cp[0].name;
+		}
+		return string;
+	}
+	/**
 	 * 写入木牌内容
 	 * 
 	 * @param location
