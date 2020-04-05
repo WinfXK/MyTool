@@ -50,6 +50,20 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	private static String colorKeyString = "123456789abcdef";
 	private static String randString = "-+abcdefghijklmnopqrstuvwxyz_";
 		/**
+	 * 数组相加
+	 * 
+	 * @param <T>    数组的类型
+	 * @param arrays 要先加的数组内容
+	 * @return
+	 */
+	public static <T> T[] Arrays(T[]... arrays) {
+		List<T> list = new ArrayList<>();
+		for (T[] t : arrays)
+			for (T t1 : t)
+				list.add(t1);
+		return (T[]) list.toArray();
+	}
+		/**
 	 * 写入木牌内容
 	 * 
 	 * @param Level
