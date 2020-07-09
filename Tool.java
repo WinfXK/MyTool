@@ -1,4 +1,4 @@
-package cn.epicfx.winfxk.money.sn.tool;
+package cn.winfxk.acaterina.tool;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -16,13 +16,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -41,7 +39,17 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
+import cn.nukkit.block.Block;
+import cn.nukkit.blockentity.BlockEntity;
+import cn.nukkit.blockentity.BlockEntitySign;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.data.CommandParamType;
+import cn.nukkit.command.data.CommandParameter;
 import cn.nukkit.item.Item;
+import cn.nukkit.level.Level;
+import cn.nukkit.level.Location;
+import cn.nukkit.math.Vector3;
 
 /**
  * @author Winfxk
@@ -49,7 +57,68 @@ import cn.nukkit.item.Item;
 public class Tool implements X509TrustManager, HostnameVerifier {
 	private static String colorKeyString = "123456789abcdef";
 	private static String randString = "-+abcdefghijklmnopqrstuvwxyz_";
-		/**
+
+	/**
+	 * 计算两个日期之间相隔多少天
+	 * 
+	 * @param date1 第一个日期字符串
+	 * @param date2 第二个日期字符串
+	 * @return
+	 */
+	public static long getDay(String date1, String date2) {
+		return getDay(date1, "yyyy-MM-dd", date2, "yyyy-MM-dd");
+	}
+
+	/**
+	 * 计算两个日期之间相隔多少天
+	 * 
+	 * @param date1       第一个日期字符串
+	 * @param date1format 第一个日期字符串的格式<yyyy-MM-dd>
+	 * @param date2       第二个日期字符串
+	 * @param date2format 第二个日期字符串<yyyy-MM-dd>
+	 */
+	public static long getDay(String date1sStr, String date1format, String date2Str, String date2format) {
+		Date date1 = parseDate(date1sStr, date1format);
+		Date date2 = parseDate(date2Str, date2format);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date1);
+		long timeInMillis1 = calendar.getTimeInMillis();
+		calendar.setTime(date2);
+		long timeInMillis2 = calendar.getTimeInMillis();
+		long betweenDays = (timeInMillis2 - timeInMillis1) / (1000L * 3600L * 24L);
+		return betweenDays;
+	}
+
+	/**
+	 * 将指定的日期字符串转换成日期
+	 * 
+	 * @param dateStr 日期字符串
+	 * @param pattern 格式
+	 * @return 日期对象
+	 */
+	public static Date parseDate(String dateStr) {
+		return parseDate(dateStr, "yyyy-MM-dd HH:mm:ss");
+	}
+
+	/**
+	 * 将指定的日期字符串转换成日期
+	 * 
+	 * @param dateStr 日期字符串
+	 * @param pattern 格式
+	 * @return 日期对象
+	 */
+	public static Date parseDate(String dateStr, String pattern) {
+		SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+		Date date;
+		try {
+			date = sdf.parse(dateStr);
+		} catch (ParseException e) {
+			throw new RuntimeException("日期转化错误");
+		}
+		return date;
+	}
+
+	/**
 	 * 数组相加
 	 * 
 	 * @param <T>    数组的类型
@@ -63,9 +132,58 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 				list.add(t1);
 		return (T[]) list.toArray();
 	}
-		/**
+
+	/**
+	 * 自动生成一个Command对象的Help文本
+	 *
+	 * @param command
+	 * @return
+	 */
+	public static String getCommandHelp(Command command) {
+		String string = "";
+		for (Map.Entry<String, CommandParameter[]> entry : command.getCommandParameters().entrySet())
+			string += getCommandHelp(command, entry.getValue(), entry.getKey()) + "\n";
+		return string;
+	}
+
+	/**
+	 * 自动生成一个Command对象的Help文本
+	 *
+	 * @param command
+	 * @return
+	 */
+	public static String getCommandHelp(Command command, CommandParameter[] cp, String Key) {
+		String string = "", cmd, zy;
+		CommandParameter cs;
+		if (cp.length > 0) {
+			cmd = command.getName();
+			for (String s : command.getAliases())
+				if (String_length(s) < String_length(cmd))
+					cmd = s;
+			string += "§f/" + cmd + " §b";
+			for (int i = 0; i < cp.length; i++) {
+				cs = cp[i];
+				if (cs.type.equals(CommandParamType.RAWTEXT))
+					zy = cs.enumData.getValues().get(0);
+				else {
+					zy = cs.name;
+				}
+				if (cs.enumData != null)
+					for (String s : cs.enumData.getValues())
+						if (String_length(s) < String_length(zy))
+							zy = s;
+				string += i == 0 ? zy
+						: "§6 " + (cp[i].type.equals(CommandParamType.RAWTEXT) ? cp[i].enumData.getValues().get(0)
+								: cp[i].name);
+			}
+			string += "§f： §9" + Key;
+		}
+		return string;
+	}
+
+	/**
 	 * 写入木牌内容
-	 * 
+	 *
 	 * @param Level
 	 * @param x
 	 * @param y
@@ -80,37 +198,8 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	}
 
 	/**
-	 * 自动生成一个Command对象的Help文本
-	 *
-	 * @param command
-	 * @return
-	 */
-	public static String getCommandHelp(Command command) {
-		String string = "";
-		for (CommandParameter[] cp : command.getCommandParameters().values())
-			string += getCommandHelp(command, cp) + "\n";
-		return string;
-	}
-
-	/**
-	 * 自动生成一个Command对象的Help文本
-	 *
-	 * @param command
-	 * @return
-	 */
-	public static String getCommandHelp(Command command, CommandParameter[] cp) {
-		String string = "";
-		if (cp.length > 0) {
-			string += "§f/" + command.getName() + " §b";
-			for (int i = 0; i < cp.length; i++)
-				string += (i == 0 ? cp[i].enumData.getValues().get(0) : "§6 " + cp[i].name);
-			string += "§f： §9" + cp[0].name;
-		}
-		return string;
-	}
-	/**
 	 * 写入木牌内容
-	 * 
+	 *
 	 * @param location
 	 * @param list
 	 */
@@ -120,7 +209,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 写入木牌内容
-	 * 
+	 *
 	 * @param Level
 	 * @param vector3
 	 * @param list
@@ -134,7 +223,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 写入木牌内容
-	 * 
+	 *
 	 * @param level
 	 * @param vector3
 	 * @param list
@@ -145,7 +234,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 写入木牌内容
-	 * 
+	 *
 	 * @param block
 	 * @param list
 	 */
@@ -153,7 +242,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 		if (list == null || block == null)
 			return;
 		BlockEntity blockEntity = block.getLevel().getBlockEntity(block);
-		BlockEntitySign sign = (blockEntity instanceof BlockEntitySign) ? (BlockEntitySign) blockEntity
+		BlockEntitySign sign = blockEntity instanceof BlockEntitySign ? (BlockEntitySign) blockEntity
 				: new BlockEntitySign(block.getLevel().getChunk(block.getFloorX() >> 4, block.getFloorZ() >> 4),
 						BlockEntity.getDefaultCompound(block, BlockEntity.SIGN));
 		String[] Tile = { " ", " ", " ", " " };
@@ -164,9 +253,88 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 		}
 		sign.setText(Tile);
 	}
-		/**
+
+	/**
+	 * 将一个数据物品化
+	 *
+	 * @param map
+	 * @param file
+	 * @return
+	 */
+	public static Item loadItem(Map<String, Object> map) {
+		if (map == null)
+			return null;
+		Item item = new Item((int) map.get("ID"), (int) map.get("Damage"), (int) map.get("Count"));
+		String name = (String) map.get("Name");
+		if (name != null && !name.isEmpty())
+			item.setCustomName(name);
+		try {
+			item.setCompoundTag((byte[]) map.get("Nbt"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return item;
+	}
+
+	/**
+	 * 将一个物品数据化
+	 *
+	 * @param item
+	 * @return
+	 */
+	public static Map<String, Object> saveItem(Item item) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("Nbt", item.getCompoundTag());
+		map.put("ID", item.getId());
+		map.put("Damage", item.getDamage());
+		map.put("Name", item.hasCustomName() ? item.getName() : null);
+		map.put("Count", item.getCount());
+		return map;
+	}
+
+	/**
+	 * 将保存起来的玩家背包读取到一个对象 </br>
+	 * <b>player.getInventory().setContents(取得的对象);</b>
+	 *
+	 * @return
+	 */
+	public static Map<Integer, Item> loadInventory(Map<Integer, Map<String, Object>> list) {
+		Map<Integer, Item> Contents = new HashMap<>();
+		for (Integer i : list.keySet()) {
+			Map<String, Object> map = list.get(i);
+			Item item = new Item((int) map.get("ID"), (int) map.get("Damage"), (int) map.get("Count"),
+					(String) map.get("Name"));
+			item.setCompoundTag((byte[]) map.get("Nbt"));
+			Contents.put(i, item);
+		}
+		return Contents;
+	}
+
+	/**
+	 * 将一个玩家的背包保存到文件
+	 *
+	 * @param player 要保存背包的玩家对象
+	 * @return
+	 */
+	public static Map<Integer, Map<String, Object>> saveInventory(Player player) {
+		Map<Integer, Map<String, Object>> list = new HashMap<>();
+		Map<Integer, Item> Contents = player.getInventory().getContents();
+		for (Integer i : Contents.keySet()) {
+			Item item = Contents.get(i);
+			Map<String, Object> map = new HashMap<>();
+			map.put("Nbt", item.getCompoundTag());
+			map.put("ID", item.getId());
+			map.put("Damage", item.getDamage());
+			map.put("Name", item.getName());
+			map.put("Count", item.getCount());
+			list.put(i, map);
+		}
+		return list;
+	}
+
+	/**
 	 * 获取服务器当前的语言
-	 * 
+	 *
 	 * @return
 	 */
 	public static String getLanguage() {
@@ -175,7 +343,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 返回对应语言的简写
-	 * 
+	 *
 	 * @return
 	 */
 	public static Map<String, String> getLanguages() {
@@ -201,7 +369,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将一个不知道什么玩意转换为Long
-	 * 
+	 *
 	 * @param obj
 	 * @return
 	 */
@@ -211,7 +379,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将一个不知道什么玩意转换为Long
-	 * 
+	 *
 	 * @param obj
 	 * @param d
 	 * @return
@@ -221,32 +389,16 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 		if (obj == null || string.isEmpty())
 			return d;
 		try {
-			return Long.valueOf(string);
+			return Long.valueOf(Float.valueOf(string).intValue());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return d;
 	}
 
-		/**
-	 * 从本地读取图片资源
-	 * 
-	 * @param url
-	 * @return
-	 */
-	public static Bitmap getLoacalBitmap(File url) {
-		try {
-			FileInputStream fis = new FileInputStream(url);
-			return BitmapFactory.decodeStream(fis);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
 	/**
 	 * 将一个不知道什么玩意转换为双精
-	 * 
+	 *
 	 * @param obj
 	 * @return
 	 */
@@ -256,7 +408,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将一个不知道什么玩意转换为双精
-	 * 
+	 *
 	 * @param obj
 	 * @param d
 	 * @return
@@ -275,7 +427,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将一个不知道什么玩意转换为双精
-	 * 
+	 *
 	 * @param obj
 	 * @return
 	 */
@@ -285,7 +437,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将一个不知道什么玩意转换为双精
-	 * 
+	 *
 	 * @param obj
 	 * @param d
 	 * @return
@@ -303,46 +455,8 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	}
 
 	/**
-	 * 设置一个图片（将图片处理为合适大小，避免内存泄漏）
-	 * 
-	 * @param iv    图片视图对象
-	 * @param c
-	 * @param resId 资源ID
-	 */
-	public static void setImagee(ImageView iv, Activity c, int resId) {
-		BitmapFactory.Options factoryOptions = new BitmapFactory.Options();
-		factoryOptions.inJustDecodeBounds = true;
-		Bitmap bitmap = BitmapFactory.decodeResource(c.getResources(), resId);
-		int bitmapHeight = bitmap.getHeight();
-		int bitmapWidth = bitmap.getWidth();
-		Display defaultDisplay = c.getWindowManager().getDefaultDisplay();
-		Point point = new Point();
-		defaultDisplay.getSize(point);
-		float scaleWidth = ((float) bitmapWidth) / point.x;
-		float scaleHeight = ((float) bitmapHeight) / point.y;
-		Matrix matrix = new Matrix();
-		matrix.postScale(scaleWidth, scaleHeight);
-		bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmapWidth, bitmapHeight, matrix, true);
-		iv.setImageBitmap(bitmap);
-	}
-
-	/**
-	 * 判断文件是否是图片
-	 * 
-	 * @param filePath
-	 * @return
-	 */
-	public static boolean isImageFile(String filePath) {
-		Options options = new Options();
-		options.inJustDecodeBounds = true;
-		BitmapFactory.decodeFile(filePath, options);
-		if (options.outWidth == -1)
-			return false;
-		return true;
-	}
-	/**
 	 * 求最大公约数
-	 * 
+	 *
 	 * @param num1
 	 * @param num2
 	 * @return
@@ -359,12 +473,44 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	}
 
 	/**
+	 * 获取小数长度
+	 *
+	 * @param f
+	 * @return
+	 */
+	public static int getDecimalsLength(float f) {
+		String string = String.valueOf(f);
+		if (f == 0 || string.indexOf(".") < 0)
+			return 0;
+		return string.substring(string.indexOf(".") + 1).length();
+	}
+
+	/**
+	 * 获取字符真实长度
+	 *
+	 * @param value
+	 * @return
+	 */
+	public static int String_length(String value) {
+		int valueLength = 0;
+		String chinese = "[\u4e00-\u9fa5]";
+		for (int i = 0; i < value.length(); i++) {
+			String temp = value.substring(i, i + 1);
+			if (temp.matches(chinese))
+				valueLength += 2;
+			else
+				valueLength += 1;
+		}
+		return valueLength;
+	}
+
+	/**
 	 * 小数转分数
-	 * 
+	 *
 	 * @param f int[分子,分母]
 	 * @return
 	 */
-	public static long[] getGrade(float f) {
+	public static long[] getGrade(float f, int floatLength) {
 		if (f == 0)
 			return new long[] { 0, 0 };
 		String string = String.valueOf(f);
@@ -372,12 +518,11 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 			return new long[] { (long) f, 1 };
 		String sint = string.substring(0, string.indexOf("."));
 		String sfloat = string.substring(string.indexOf(".") + 1);
-		int floatLength = sfloat.length();
 		long Fenmu = 1;
 		for (int k = 0; k < floatLength; k++)
 			Fenmu *= 10;
 		long Fenzi = Long.parseLong(sint + sfloat);
-		long lXs = (Fenzi < Fenmu) ? Fenzi : Fenmu, j = 1;
+		long lXs = Fenzi < Fenmu ? Fenzi : Fenmu, j = 1;
 		for (j = lXs; j > 1; j--)
 			if (Fenzi % j == 0 && Fenmu % j == 0)
 				break;
@@ -385,9 +530,10 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 		Fenmu = Fenmu / j;
 		return new long[] { Fenzi, Fenmu };
 	}
+
 	/**
 	 * Object对象转换为String
-	 * 
+	 *
 	 * @param obj
 	 * @return
 	 */
@@ -397,7 +543,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * Object对象转换为String
-	 * 
+	 *
 	 * @param obj
 	 * @param string
 	 * @return
@@ -405,22 +551,16 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	public static String objToString(Object obj, String string) {
 		if (obj == null)
 			return string;
-		return String.valueOf(obj);
-	}
-
-	/**
-	 * 获取从一个时间点到现在的时间差
-	 * 
-	 * @param time 时间点
-	 * @return
-	 */
-	public static String getTimeTo(Temporal time) {
-		return getTimeBy(Duration.between(time, Instant.now()).toMillis() / 1000);
+		try {
+			return String.valueOf(obj);
+		} catch (Exception e) {
+			return string;
+		}
 	}
 
 	/**
 	 * 将秒长度转换为日期长度
-	 * 
+	 *
 	 * @param time 秒长度
 	 * @return
 	 */
@@ -439,7 +579,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 判断两个ID是否匹配，x忽略匹配
-	 * 
+	 *
 	 * @param ID1 第一个ID
 	 * @param ID2 第二个ID
 	 * @return
@@ -453,18 +593,17 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 		if (!ID2.contains(":"))
 			ID2 += ":0";
 		String[] ID1s = ID1.split(":"), ID2s = ID2.split(":");
-		if (ID1s[0].equals("x") || ID2s[0].equals("x") || ID1s[0].equals(ID2s[0]))
+		if (ID1s[0].equals("x") || ID2s[0].equals("x") || ID1s[0].equals(ID2s[0])) {
 			if (ID1s[1].equals("x") || ID2s[1].equals("x") || ID2s[1].equals(ID1s[1]))
 				return true;
-			else
-				return false;
-		else
 			return false;
+		}
+		return false;
 	}
 
 	/**
 	 * 获取当前时间
-	 * 
+	 *
 	 * @return
 	 */
 	public static String getTime() {
@@ -474,7 +613,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 返回当前时间 <年-月-日>
-	 * 
+	 *
 	 * @return
 	 */
 	public static String getDate() {
@@ -484,7 +623,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 自动检查ID是否包含特殊值，若不包含则默认特殊值为0后返回数组
-	 * 
+	 *
 	 * @param ID 要检查分解的ID
 	 * @return int[]{ID, Damage}
 	 */
@@ -494,7 +633,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 自动检查ID是否包含特殊值，若不包含则设置特殊值为用户定义值后返回数组
-	 * 
+	 *
 	 * @param ID     要检查的ID
 	 * @param Damage 要默认设置的特殊值
 	 * @return int[]{ID, Damage}
@@ -515,27 +654,34 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 获取随机数
-	 * 
+	 *
 	 * @param min 随机数的最小值
 	 * @param max 随机数的最大值
 	 * @return
 	 */
-	public static int getRand(int min, int max) {
-		return (int) (min + Math.random() * (max - min + 1));
+	public static int getRand(int Min, int Max) {
+		int Rand, Fn = Min;
+		Min = Min <= 0 ? 0 : Min;
+		Rand = (int) (Min + Math.random() * (Max - Min + 1));
+		if (Fn < 0) {
+			int x = (int) (Math.random() * (Fn * -1 + 1));
+			Rand = (int) (Math.random() * 2) == 1 ? Rand : x * -1;
+		}
+		return Rand;
 	}
 
 	/**
 	 * 获取随机数
-	 * 
+	 *
 	 * @return
 	 */
 	public static int getRand() {
-		return getRand(0, (Integer.MAX_VALUE - 1) / 2);
+		return getRand(Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 
 	/**
 	 * 返回一个随机颜色代码
-	 * 
+	 *
 	 * @return
 	 */
 	public static String getRandColor() {
@@ -544,7 +690,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 返回一个随机颜色代码
-	 * 
+	 *
 	 * @param ColorFont 可以随机到的颜色代码
 	 * @return
 	 */
@@ -555,7 +701,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将字符串染上随机颜色
-	 * 
+	 *
 	 * @param Font 要染色的字符串
 	 * @return
 	 */
@@ -565,7 +711,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 返回一个随机字符
-	 * 
+	 *
 	 * @return 随机字符
 	 */
 	public static String getRandString() {
@@ -574,7 +720,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 返回一个随机字符
-	 * 
+	 *
 	 * @param string 要随机字符的范围
 	 * @return 随机字符
 	 */
@@ -585,7 +731,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将字符串染上随机颜色
-	 * 
+	 *
 	 * @param Font      要染色的字符串
 	 * @param ColorFont 随机染色的颜色代码
 	 * @return
@@ -601,7 +747,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 判断字符串是否是整数型
-	 * 
+	 *
 	 * @param str
 	 * @return
 	 */
@@ -616,7 +762,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 判断一段字符串中是否只为纯数字
-	 * 
+	 *
 	 * @param str
 	 * @return
 	 */
@@ -627,7 +773,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 字符串转换Unicode
-	 * 
+	 *
 	 * @param string 要转换的字符串
 	 * @return
 	 */
@@ -640,7 +786,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * unicode 转字符串
-	 * 
+	 *
 	 * @param unicode 全为 Unicode 的字符串
 	 * @return
 	 */
@@ -655,7 +801,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	/**
 	 * 设置小数长度</br>
 	 * 默认保留两位小数</br>
-	 * 
+	 *
 	 * @param d 要设置的数值
 	 * @return
 	 */
@@ -665,12 +811,14 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 设置小数长度</br>
-	 * 
+	 *
 	 * @param d      要设置的数
-	 * @param length 要保留的小数的长度
+	 * @param length 要保留的小数的
 	 * @return
 	 */
 	public static double Double2(double d, int length) {
+		if (d == 0)
+			return 0;
 		String s = "#.0";
 		for (int i = 1; i < length; i++)
 			s += "0";
@@ -680,7 +828,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 发送HTTP请求
-	 * 
+	 *
 	 * @param httpUrl 请求地址
 	 * @param param   请求的内容
 	 * @return
@@ -692,7 +840,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 发送HTTP请求
-	 * 
+	 *
 	 * @param httpUrl 请求地址
 	 * @param param   请求的内容
 	 * @return
@@ -704,7 +852,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 发送HTTP请求
-	 * 
+	 *
 	 * @param httpUrl 请求地址
 	 * @param Type    请求的方式
 	 * @param param   请求的内容
@@ -752,7 +900,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 从一段字符内截取另一段字符
-	 * 
+	 *
 	 * @param Context 要截取字符的原文
 	 * @param text1   要截取的第一段文字
 	 * @param text2   要截取的第二段文字
@@ -760,7 +908,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	 */
 	public static String cutString(String Context, String strStart, String strEnd) {
 		int strStartIndex = Context.indexOf(strStart);
-		int strEndIndex = Context.lastIndexOf(strEnd);
+		int strEndIndex = Context.indexOf(strEnd, strStartIndex + 1);
 		if (strStartIndex < 0 || strEndIndex < 0)
 			return null;
 		return Context.substring(strStartIndex, strEndIndex).substring(strStart.length());
@@ -768,7 +916,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 下载文件
-	 * 
+	 *
 	 * @param urlStr   要下载的文件的连接
 	 * @param fileName 下载后文件的名字
 	 * @param savePath 要保存的位置
@@ -794,7 +942,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 保存字节流
-	 * 
+	 *
 	 * @param inputStream 文件流
 	 * @return
 	 * @throws IOException
@@ -811,22 +959,22 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将一段不知道什么玩意转化为纯整数
-	 * 
+	 *
 	 * @param object
 	 * @return
 	 */
-	public static int ObjectToInt(Object object) {
-		return ObjectToInt(object, 0);
+	public static int ObjToInt(Object object) {
+		return ObjToInt(object, 0);
 	}
 
 	/**
 	 * 讲一段不知道什么玩意转化为纯数字
-	 * 
+	 *
 	 * @param object
 	 * @param i      若不是纯数字将默认转化的值
 	 * @return
 	 */
-	public static int ObjectToInt(Object object, int i) {
+	public static int ObjToInt(Object object, int i) {
 		if (object == null)
 			return i;
 		String string = String.valueOf(object);
@@ -837,7 +985,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 一个Object值转换为bool值，转化失败返回false
-	 * 
+	 *
 	 * @param obj
 	 * @return
 	 */
@@ -847,7 +995,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 一个Object值转换为bool值，转化失败返回false
-	 * 
+	 *
 	 * @param obj
 	 * @param Del
 	 * @return
@@ -864,7 +1012,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 发送Https请求
-	 * 
+	 *
 	 * @param requestUrl 请求的地址
 	 * @return
 	 * @throws KeyManagementException
@@ -879,7 +1027,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 发送Https请求
-	 * 
+	 *
 	 * @param requestUrl 请求的地址
 	 * @param outputStr  请求的参数值
 	 * @return
@@ -895,7 +1043,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 发送Https请求
-	 * 
+	 *
 	 * @param requestUrl    请求的地址
 	 * @param requestMethod 请求的方式
 	 * @param outputStr     请求的参数值
@@ -937,7 +1085,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 替换掉字符中的html标签
-	 * 
+	 *
 	 * @param string
 	 * @return
 	 */
@@ -960,7 +1108,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * Https下载文件
-	 * 
+	 *
 	 * @param urlStr   要下载的文件链接
 	 * @param fileName 要保存的文件的名字
 	 * @param savePath 文件的保存位置
@@ -1010,100 +1158,24 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	}
 
 	/**
-	 * 将一个数据物品化
-	 * 
-	 * @param map
-	 * @param file
-	 * @return
-	 */
-	public static Item loadItem(Map<String, Object> map) {
-		Item item = new Item((int) map.get("ID"), (int) map.get("Damage"), (int) map.get("Count"));
-		String name = (String) map.get("Name");
-		if (name != null && !name.isEmpty())
-			item.setCustomName(name);
-		try {
-			item.setCompoundTag((byte[]) map.get("Nbt"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return item;
-	}
-
-	/**
-	 * 将一个物品数据化
-	 * 
-	 * @param item
-	 * @return
-	 */
-	public static Map<String, Object> saveItem(Item item) {
-		Map<String, Object> map = new HashMap<>();
-		map.put("Nbt", item.getCompoundTag());
-		map.put("ID", item.getId());
-		map.put("Damage", item.getDamage());
-		map.put("Name", item.hasCustomName() ? item.getName() : null);
-		map.put("Count", item.getCount());
-		return map;
-	}
-
-	/**
-	 * 将保存起来的玩家背包读取到一个对象 </br>
-	 * <b>player.getInventory().setContents(取得的对象);</b>
-	 * 
-	 * @return
-	 */
-	public static Map<Integer, Item> loadInventory(List<Map<String, Object>> list) {
-		Map<Integer, Item> Contents = new HashMap<>();
-		for (int i = 0; i < list.size(); i++) {
-			Map<String, Object> map = list.get(i);
-			Item item = new Item((int) map.get("ID"), (int) map.get("Damage"), (int) map.get("Count"),
-					(String) map.get("Name"));
-			item.setCompoundTag((byte[]) map.get("Nbt"));
-			Contents.put(i, item);
-		}
-		return Contents;
-	}
-
-	/**
-	 * 将一个玩家的背包保存到文件
-	 * 
-	 * @param player 要保存背包的玩家对象
-	 * @return
-	 */
-	public static List<Map<String, Object>> saveInventory(Player player) {
-		List<Map<String, Object>> list = new ArrayList<>();
-		Map<Integer, Item> Contents = player.getInventory().getContents();
-		for (Integer i : Contents.keySet()) {
-			Item item = Contents.get(i);
-			Map<String, Object> map = new HashMap<>();
-			map.put("Nbt", item.getCompoundTag());
-			map.put("ID", item.getId());
-			map.put("Damage", item.getDamage());
-			map.put("Name", item.getName());
-			map.put("Count", item.getCount());
-			list.add(map);
-		}
-		return list;
-	}
-
-	/**
 	 * 将未知参数转换为小数
-	 * 
+	 *
 	 * @param obj
 	 * @param double1
 	 * @return
 	 */
-	public static Double ObjectToDouble(Object obj) {
-		return ObjectToDouble(obj, 0d);
+	public static Double ObjToDouble(Object obj) {
+		return ObjToDouble(obj, 0d);
 	}
 
 	/**
 	 * 将未知参数转换为小数
-	 * 
+	 *
 	 * @param obj
 	 * @param double1
 	 * @return
 	 */
-	public static Double ObjectToDouble(Object obj, Double double1) {
+	public static Double ObjToDouble(Object obj, Double double1) {
 		if (obj == null)
 			return double1;
 		double d;
@@ -1120,7 +1192,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将Map按数据升序排列
-	 * 
+	 *
 	 * @param <K>
 	 * @param <V>
 	 * @param map
@@ -1128,13 +1200,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	 */
 	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValueAscending(Map<K, V> map) {
 		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
-		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
-			@Override
-			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
-				int compare = (o1.getValue()).compareTo(o2.getValue());
-				return compare;
-			}
-		});
+		Collections.sort(list, (a, b) -> a.getValue().compareTo(b.getValue()));
 		Map<K, V> result = new LinkedHashMap<>();
 		for (Map.Entry<K, V> entry : list)
 			result.put(entry.getKey(), entry.getValue());
@@ -1143,7 +1209,7 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 
 	/**
 	 * 将Map降序排序
-	 * 
+	 *
 	 * @param <K>
 	 * @param <V>
 	 * @param map
@@ -1151,16 +1217,21 @@ public class Tool implements X509TrustManager, HostnameVerifier {
 	 */
 	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValueDescending(Map<K, V> map) {
 		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
-		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
-			@Override
-			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
-				int compare = (o1.getValue()).compareTo(o2.getValue());
-				return -compare;
-			}
-		});
+		Collections.sort(list, (a, b) -> -(a.getValue().compareTo(b.getValue())));
 		Map<K, V> result = new LinkedHashMap<>();
 		for (Map.Entry<K, V> entry : list)
 			result.put(entry.getKey(), entry.getValue());
 		return result;
+	}
+
+	/**
+	 * 返回一个随机数
+	 *
+	 * @param d
+	 * @param e
+	 * @return
+	 */
+	public static double getRand(double d, double e) {
+		return getRand(ObjToInt(d), ObjToInt(e));
 	}
 }
