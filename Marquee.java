@@ -10,10 +10,20 @@ public class Marquee {
 	private String string;
 	private String Color = "";
 
+	public Marquee() {
+	}
+
 	public Marquee(String string) {
 		this.string = string;
 		while (Color.length() < string.length())
 			Color += Tool.getRandString("123456789abcdef");
+	}
+
+	public Marquee setString(String string) {
+		this.string = string;
+		while (Color.length() < string.length())
+			Color += Tool.getRandString("123456789abcdef");
+		return this;
 	}
 
 	public String getString() {

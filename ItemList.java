@@ -52,6 +52,46 @@ public class ItemList {
 	}
 
 	/**
+	 * 将一个未知数据转换为Item
+	 * 
+	 * @param obj 未知数据
+	 * @return
+	 */
+	public Item objToItem(Object obj) {
+		return objToItem(obj, true, null);
+	}
+
+	/**
+	 * 将一个未知数据转换为Item
+	 * 
+	 * @param obj     未知数据
+	 * @param match   是否粗略匹配
+	 * @param Default 若全部匹配失败将会返回的内容
+	 * @return
+	 */
+	public Item objToItem(Object obj, boolean match, Item Default) {
+		String string = Tool.objToString(obj);
+		if (obj == null || string == null || string.isEmpty())
+			return Default;
+		if (obj instanceof Item)
+			return (Item) obj;
+		if (obj instanceof ItemList)
+			return ((ItemList) obj).getItem();
+		if (Tool.isInteger(string))
+			return new Item(Tool.ObjToInt(obj));
+		if (string.contains(":")) {
+			String[] strings = string.split(":");
+			if (Tool.isInteger(strings[0]))
+				return new Item(Tool.ObjToInt(strings[0]),
+						strings.length >= 2 && Tool.isInteger(strings[1]) ? Tool.ObjToInt(strings[0]) : 0);
+		}
+		for (ItemList list : this.list)
+			if (string.equals(list.Name) || (match && string.toLowerCase().equals(list.Name.toLowerCase())))
+				return getItem();
+		return Default;
+	}
+
+	/**
 	 * 根据一串位置数据返回一个物品ID
 	 * 
 	 * @param obj     未知数据<包含的可能性为：ID、名称、ID:Damage>
@@ -468,6 +508,15 @@ public class ItemList {
 	 */
 	public List<ItemList> getAll() {
 		return new ArrayList<>(list);
+	}
+
+	/**
+	 * 返回对应的物品
+	 * 
+	 * @return
+	 */
+	public Item getItem() {
+		return new Item(ID, Damage);
 	}
 
 	/**
